@@ -8,28 +8,23 @@ use testcontainers::{
 
 #[tokio::test]
 async fn test_nats() {
+    println!("Start Nats container");
+
     let image = GenericImage::new("nats", "latest")
         .with_exposed_port(4222.tcp())
         .with_wait_for(WaitFor::Duration {
             length: Duration::from_millis(10),
         })
         .start()
-        .await;
-    println!("-= ready =-");
-    match image {
-        Ok(cnt) => {
-            let port_result = cnt.get_host_port_ipv4(4222).await;
-            match port_result {
-                Ok(port) => {
-                    println!("{}", port);
-                }
-                Err(e) => {
-                    println!("{:?}", e);
-                }
-            }
-        }
-        Err(e) => {
-            println!("{:?}", e);
-        }
-    }
+        .await
+        .unwrap_or_else(|e| panic!("Failed to start container: {:?}", e));
+
+    let port = image
+        .get_host_port_ipv4(4222)
+        .await
+        .unwrap_or_else(|e| panic!("Failed to get port: {:?}", e));
+
+    println!("Nats port: {}", port);
+
+    //TODO
 }
